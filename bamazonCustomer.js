@@ -13,6 +13,7 @@ connection.connect(function(err){
     if(err) throw err;
     console.log("Connected as ID " + connection.threadId);
     showTable();
+    
 })
 
 function userQuestions(){
@@ -33,8 +34,8 @@ function userQuestions(){
         var sql = "SELECT * FROM products WHERE ?";
         connection.query(sql, {id: userChoice}, function(err,res){
             if (res[0].STOCK_QUANTITY < userUnits){
-                console.log ("Insufficient Quantity")
-                showTable();
+                console.log ("Insufficient Quantity, Please re-enter a quantity")
+                showTable();   
             }
             else{
                 console.log("You order was successful!")
@@ -44,6 +45,7 @@ function userQuestions(){
                     {id: userChoice}
                 ])
                 console.log("Your total is: $" + res[0].PRICE * userUnits);
+                connection.end();
             }  
 
         });
@@ -67,10 +69,6 @@ function showTable() {
             }
             
         });
-       
-       
-       
-        
         t.push(["Id", "Product", "Price"]),
             res.forEach(function(inventory){
             t.push([inventory.ID, inventory.PRODUCT_NAME, "$"+ inventory.PRICE])
