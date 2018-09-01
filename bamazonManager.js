@@ -17,7 +17,7 @@ connection.connect(function(err) {
   managerOptions();
 });
 
-//Allows User to end connection 
+//Allows User to end connection
 function endUserConnection() {
   inquirer
     .prompt({
@@ -29,15 +29,14 @@ function endUserConnection() {
     .then(function(answer) {
       if (answer.finished === "YES") {
         console.log("Ending Connection ID " + connection.threadId);
-        console.log ("Connection Successfully Terminated");
+        console.log("Connection Successfully Terminated");
         console.log("Have a great day!");
-        connection.end();}
-       else if (answer.finished === "NO") {
+        connection.end();
+      } else if (answer.finished === "NO") {
         managerOptions();
       }
     });
 }
-
 //Starts Options
 function managerOptions() {
   inquirer
@@ -49,20 +48,63 @@ function managerOptions() {
         "View Products for Sale",
         "View Low Inventory",
         "Add to Inventory",
-        "Add a New Product"
+        "Add a New Product",
+        "Delete Product"
       ]
     })
     .then(function(answer) {
       if (answer.options === "View Products for Sale") {
         productSale();
-      } else if (answer.options === "View Low Inventory") {
+      } 
+      else if (answer.options === "View Low Inventory") {
         lowInventory();
-      } else if (answer.options === "Add to Inventory") {
+      } 
+      else if (answer.options === "Add to Inventory") {
         addInventory();
-      } else if (answer.options === "Add a New Product") {
+      } 
+      else if (answer.options === "Add a New Product") {
         newProduct();
       }
+      else if (answer.options === "Delete Product"){
+        deleteProduct();
+      }
     });
+}
+//Shows inventory that is low w/ no endConnection()
+function showLowInventory() {
+  var displayTable = "SELECT * FROM products WHERE STOCK_QUANTITY < 5";
+  connection.query(displayTable, function(err, res) {
+    if (err) throw err;
+    var t = new Table({
+      borderStyle: 3,
+      horizontalLine: true,
+      width: [3]
+    });
+    t.attrRange(
+      { row: [0, 1] },
+      {
+        align: "center",
+        color: "yellow"
+      }
+    );
+    t.attrRange(
+      { row: [1], column: [0, 3] },
+      {
+        align: "center",
+        color: "green"
+      }
+    );
+    t.push(["Id", "Product", "Price", "Number in Stock"]),
+      res.forEach(function(inventory) {
+        t.push([
+          inventory.ID,
+          inventory.PRODUCT_NAME,
+          "$" + inventory.PRICE,
+          inventory.STOCK_QUANTITY
+        ]);
+      });
+    console.log("" + t);
+  });
 }
 //Shows all products for sale
 function productSale() {
@@ -72,25 +114,22 @@ function productSale() {
     var t = new Table({
       borderStyle: 3,
       horizontalLine: true,
-      width: [3],
-      rightPadding: 5,
-      leftPadding: 7,
-      border: {
-        sep: "U2551",
-        topLeft: "U2554",
-        topmid: "U2566",
-        top: "U2550",
-        topRight: "U2557",
-        midLeft: "U2560",
-        midMid: "U256C",
-        mid: "U2550",
-        midRight: "U2563",
-        botLeft: "U255A",
-        botMid: "U2569",
-        bot: "U2550",
-        botRight: "U255D"
-      }
+      width: [3]
     });
+    t.attrRange(
+      { row: [0, 1] },
+      {
+        align: "center",
+        color: "yellow"
+      }
+    );
+    t.attrRange(
+      { row: [1], column: [0, 3] },
+      {
+        align: "center",
+        color: "green"
+      }
+    );
     t.push(["Id", "Product", "Price", "Number in Stock"]),
       res.forEach(function(inventory) {
         t.push([
@@ -112,25 +151,22 @@ function lowInventory() {
     var t = new Table({
       borderStyle: 3,
       horizontalLine: true,
-      width: [3],
-      rightPadding: 5,
-      leftPadding: 7,
-      border: {
-        sep: "U2551",
-        topLeft: "U2554",
-        topmid: "U2566",
-        top: "U2550",
-        topRight: "U2557",
-        midLeft: "U2560",
-        midMid: "U256C",
-        mid: "U2550",
-        midRight: "U2563",
-        botLeft: "U255A",
-        botMid: "U2569",
-        bot: "U2550",
-        botRight: "U255D"
-      }
+      width: [3]
     });
+    t.attrRange(
+      { row: [0, 1] },
+      {
+        align: "center",
+        color: "yellow"
+      }
+    );
+    t.attrRange(
+      { row: [1], column: [0, 3] },
+      {
+        align: "center",
+        color: "green"
+      }
+    );
     t.push(["Id", "Product", "Price", "Number in Stock"]),
       res.forEach(function(inventory) {
         t.push([
@@ -146,12 +182,15 @@ function lowInventory() {
 }
 //Adds inventory to table
 function addInventory() {
+  //shows inventory that is low
+  showLowInventory();
   connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
     var itemsArray = [];
     for (var i = 0; i < res.length; i++) {
       itemsArray.push(res[i].PRODUCT_NAME);
     }
+    //User Prompts
     inquirer
       .prompt([
         {
@@ -172,8 +211,9 @@ function addInventory() {
             quantity = res[i].STOCK_QUANTITY;
           }
         }
+        //Adding inventory
         connection.query(
-          "UPDATE products SET? WHERE ?",
+          "UPDATE products SET ? WHERE ?",
           [
             {
               STOCK_QUANTITY: quantity + parseInt(answer.quantity)
@@ -184,10 +224,49 @@ function addInventory() {
           ],
           function(err, res) {
             if (err) throw err;
-            console.log(answer.quantity + " was added to " + answer.item);
-            endUserConnection();
+            console.log("Quantity Updated!");
+            console.log("\n");
           }
         );
+        // Shows item that was added
+        var displayTable =
+          "SELECT ID, PRODUCT_NAME, PRICE, STOCK_QUANTITY from products WHERE?";
+        connection.query(displayTable, { PRODUCT_NAME: answer.item }, function(
+          err,
+          res
+        ) {
+          var t = new Table({
+            borderStyle: 3,
+            horizontalLine: true,
+            width: [3]
+          });
+          t.attrRange(
+            { row: [0, 1] },
+            {
+              align: "center",
+              color: "yellow"
+            }
+          );
+          t.attrRange(
+            { row: [1], column: [0, 4] },
+            {
+              align: "center",
+              color: "green"
+            }
+          );
+          t.push(["Id", "Product", "Price", "Number in Stock"]),
+            res.forEach(function(inventory) {
+              t.push([
+                inventory.ID,
+                inventory.PRODUCT_NAME,
+                "$" + inventory.PRICE,
+                inventory.STOCK_QUANTITY
+              ]);
+            });
+          console.log("Updated Product")
+          console.log("" + t);
+          endUserConnection();
+        });
       });
   });
 }
@@ -214,7 +293,8 @@ function newProduct() {
         name: "quantity",
         type: "input",
         message: "How many would you like to add?"
-      }
+      },
+      
     ])
     .then(function(answer) {
       connection.query(
@@ -225,8 +305,31 @@ function newProduct() {
           PRICE: answer.price,
           STOCK_QUANTITY: answer.quantity
         },
-        function(err) {
+         function(err) {
           console.log("You have successfully added " + answer.product);
+          productSale();
+        }
+      );
+    });
+}
+//Deletes product from db
+function deleteProduct() {
+  inquirer
+    .prompt([
+      {
+        name: "id",
+        type: "input",
+        message: "Please enter the name of the product you would like to remove"
+      },
+    ])
+    .then(function(answer) {
+      connection.query(
+        "DELETE FROM products WHERE ?",
+        {
+          ID:answer.id
+        },
+         function(err) {
+          console.log("Product successfully removed");
           endUserConnection();
         }
       );

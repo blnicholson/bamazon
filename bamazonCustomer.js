@@ -12,9 +12,28 @@ var connection = mysql.createConnection({
 connection.connect(function(err){
     if(err) throw err;
     console.log("Connected as ID " + connection.threadId);
-    showTable();
-    
+    showTable();  
 })
+
+function endUserConnection() {
+    inquirer
+      .prompt({
+        name: "finished",
+        type: "list",
+        message: "Would you like to continue shopping?",
+        choices: ["Continue Shopping", "No Thanks, I am done."]
+      })
+      .then(function(answer) {
+        if (answer.finished === "No Thanks, I am done.") {
+          console.log("Thank you for shopping at Bamazon!");
+          console.log ("Your order will ship in 1 day.");
+          console.log("Have a great day!");
+          connection.end();}
+         else if (answer.finished === "Continue Shopping") {
+         showTable();
+        }
+      });
+  }
 
 function userQuestions(){
     inquirer.prompt([{
@@ -34,18 +53,19 @@ function userQuestions(){
         var sql = "SELECT * FROM products WHERE ?";
         connection.query(sql, {id: userChoice}, function(err,res){
             if (res[0].STOCK_QUANTITY < userUnits){
-                console.log ("Insufficient Quantity, Please re-enter a quantity")
+                console.log ("Insufficient Quantity, Please re-enter a quantity");
                 showTable();   
             }
             else{
-                console.log("You order was successful!")
+                console.log("Your order is being processed....")
+                console.log("Order successful!")
                 var updateInventory = "UPDATE products SET ? WHERE ?";
                 connection.query(updateInventory, [
                     {STOCK_QUANTITY: res[0].STOCK_QUANTITY-userUnits},
                     {id: userChoice}
                 ])
                 console.log("Your total is: $" + res[0].PRICE * userUnits);
-                connection.end();
+                endUserConnection();
             }  
 
         });
@@ -59,8 +79,6 @@ function showTable() {
             borderStyle:3,
             horizontalLine:true,
             width:[3],
-            rightPadding:5,
-            leftPadding:7,
             border:{
                 sep:"U2551",
                 topLeft:"U2554", topmid: "U2566", top:"U2550", topRight:"U2557",
@@ -68,7 +86,18 @@ function showTable() {
                 botLeft:"U255A", botMid:"U2569", bot:"U2550", botRight:'U255D'
             }
             
+            
         });
+        t.attrRange({row:[0,1]},
+            {
+              align:"center",
+              color:"yellow"
+        })
+        t.attrRange({row:[1], column:[0,3]},
+            {
+              align:"center",
+              color:"green"
+        })
         t.push(["Id", "Product", "Price"]),
             res.forEach(function(inventory){
             t.push([inventory.ID, inventory.PRODUCT_NAME, "$"+ inventory.PRICE])
