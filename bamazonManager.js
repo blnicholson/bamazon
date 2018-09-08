@@ -23,16 +23,16 @@ function endUserConnection() {
     .prompt({
       name: "finished",
       type: "list",
-      message: "Are you ready to end your connection?",
-      choices: ["YES", "NO"]
+      message: "Are you ready to end your session?",
+      choices: ["Yes", "No"]
     })
     .then(function(answer) {
-      if (answer.finished === "YES") {
-        console.log("Ending Connection ID " + connection.threadId);
+      if (answer.finished === "Yes") {
+        console.log("Ending Connection ID " + connection.threadId + "......");
         console.log("Connection Successfully Terminated");
         console.log("Have a great day!");
         connection.end();
-      } else if (answer.finished === "NO") {
+      } else if (answer.finished === "No") {
         managerOptions();
       }
     });
@@ -55,24 +55,20 @@ function managerOptions() {
     .then(function(answer) {
       if (answer.options === "View Products for Sale") {
         productSale();
-      } 
-      else if (answer.options === "View Low Inventory") {
+      } else if (answer.options === "View Low Inventory") {
         lowInventory();
-      } 
-      else if (answer.options === "Add to Inventory") {
+      } else if (answer.options === "Add to Inventory") {
         addInventory();
-      } 
-      else if (answer.options === "Add a New Product") {
+      } else if (answer.options === "Add a New Product") {
         newProduct();
-      }
-      else if (answer.options === "Delete Product"){
+      } else if (answer.options === "Delete Product") {
         deleteProduct();
       }
     });
 }
 //Shows inventory that is low w/ no endConnection()
 function showLowInventory() {
-  var displayTable = "SELECT * FROM products WHERE STOCK_QUANTITY < 5";
+  var displayTable = "SELECT * FROM products WHERE Stock_Quantity < 5";
   connection.query(displayTable, function(err, res) {
     if (err) throw err;
     var t = new Table({
@@ -97,10 +93,10 @@ function showLowInventory() {
     t.push(["Id", "Product", "Price", "Number in Stock"]),
       res.forEach(function(inventory) {
         t.push([
-          inventory.ID,
-          inventory.PRODUCT_NAME,
-          "$" + inventory.PRICE,
-          inventory.STOCK_QUANTITY
+          inventory.Item_Id,
+          inventory.Product_Name,
+          "$" + inventory.Price,
+          inventory.Stock_Quantity
         ]);
       });
     console.log("" + t);
@@ -124,7 +120,7 @@ function productSale() {
       }
     );
     t.attrRange(
-      { row: [1], column: [0, 3] },
+      { row: [1], column: [0, 4] },
       {
         align: "center",
         color: "green"
@@ -133,10 +129,10 @@ function productSale() {
     t.push(["Id", "Product", "Price", "Number in Stock"]),
       res.forEach(function(inventory) {
         t.push([
-          inventory.ID,
-          inventory.PRODUCT_NAME,
-          "$" + inventory.PRICE,
-          inventory.STOCK_QUANTITY
+          inventory.Item_Id,
+          inventory.Product_Name,
+          "$" + inventory.Price,
+          inventory.Stock_Quantity
         ]);
       });
     console.log("" + t);
@@ -145,7 +141,7 @@ function productSale() {
 }
 //Shows inventory with less then 5 in stock
 function lowInventory() {
-  var displayTable = "SELECT * FROM products WHERE STOCK_QUANTITY < 5";
+  var displayTable = "SELECT * FROM products WHERE Stock_Quantity < 5";
   connection.query(displayTable, function(err, res) {
     if (err) throw err;
     var t = new Table({
@@ -170,10 +166,10 @@ function lowInventory() {
     t.push(["Id", "Product", "Price", "Number in Stock"]),
       res.forEach(function(inventory) {
         t.push([
-          inventory.ID,
-          inventory.PRODUCT_NAME,
-          "$" + inventory.PRICE,
-          inventory.STOCK_QUANTITY
+          inventory.Item_Id,
+          inventory.Product_Name,
+          "$" + inventory.Price,
+          inventory.Stock_Quantity
         ]);
       });
     console.log("" + t);
@@ -188,7 +184,7 @@ function addInventory() {
     if (err) throw err;
     var itemsArray = [];
     for (var i = 0; i < res.length; i++) {
-      itemsArray.push(res[i].PRODUCT_NAME);
+      itemsArray.push(res[i].Product_Name);
     }
     //User Prompts
     inquirer
@@ -207,8 +203,8 @@ function addInventory() {
       .then(function(answer) {
         var quantity;
         for (var i = 0; i < res.length; i++) {
-          if (res[i].PRODUCT_NAME === answer.item) {
-            quantity = res[i].STOCK_QUANTITY;
+          if (res[i].Product_Name === answer.item) {
+            quantity = res[i].Stock_Quantity;
           }
         }
         //Adding inventory
@@ -216,10 +212,10 @@ function addInventory() {
           "UPDATE products SET ? WHERE ?",
           [
             {
-              STOCK_QUANTITY: quantity + parseInt(answer.quantity)
+              Stock_Quantity: quantity + parseInt(answer.quantity)
             },
             {
-              PRODUCT_NAME: answer.item
+              Product_Name: answer.item
             }
           ],
           function(err, res) {
@@ -230,8 +226,8 @@ function addInventory() {
         );
         // Shows item that was added
         var displayTable =
-          "SELECT ID, PRODUCT_NAME, PRICE, STOCK_QUANTITY from products WHERE?";
-        connection.query(displayTable, { PRODUCT_NAME: answer.item }, function(
+          "SELECT Item_Id, Product_Name, Price, Stock_Quantity from products WHERE?";
+        connection.query(displayTable, { Product_Name: answer.item }, function(
           err,
           res
         ) {
@@ -257,13 +253,13 @@ function addInventory() {
           t.push(["Id", "Product", "Price", "Number in Stock"]),
             res.forEach(function(inventory) {
               t.push([
-                inventory.ID,
-                inventory.PRODUCT_NAME,
-                "$" + inventory.PRICE,
-                inventory.STOCK_QUANTITY
+                inventory.Item_Id,
+                inventory.Product_Name,
+                "$" + inventory.Price,
+                inventory.Stock_Quantity
               ]);
             });
-          console.log("Updated Product")
+          console.log("Updated Product");
           console.log("" + t);
           endUserConnection();
         });
@@ -293,19 +289,18 @@ function newProduct() {
         name: "quantity",
         type: "input",
         message: "How many would you like to add?"
-      },
-      
+      }
     ])
     .then(function(answer) {
       connection.query(
         "INSERT INTO products SET ?",
         {
-          PRODUCT_NAME: answer.product,
-          DEPARTMENT_NAME: answer.department,
-          PRICE: answer.price,
-          STOCK_QUANTITY: answer.quantity
+          Product_Name: answer.product,
+          Department_Name: answer.department,
+          Price: answer.price,
+          Stock_Quantity: answer.quantity
         },
-         function(err) {
+        function(err) {
           console.log("You have successfully added " + answer.product);
           productSale();
         }
@@ -319,18 +314,18 @@ function deleteProduct() {
       {
         name: "id",
         type: "input",
-        message: "Please enter the name of the product you would like to remove"
-      },
+        message: "Please enter the Item Id of the product you would like to remove"
+      }
     ])
     .then(function(answer) {
       connection.query(
         "DELETE FROM products WHERE ?",
         {
-          ID:answer.id
+          Item_Id: answer.id
         },
-         function(err) {
+        function(err) {
           console.log("Product successfully removed");
-          endUserConnection();
+          productSale();
         }
       );
     });
