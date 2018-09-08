@@ -1,0 +1,24 @@
+{
+  "name": "bamazon",
+  "version": "1.0.0",
+  "description": "An Amazon like storefront ",
+  "main": "bamazonCustomer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blnicholson/bamazon.git"
+  },
+  "author": "Brandy Nicholson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/blnicholson/bamazon/issues"
+  },
+  "homepage": "https://github.com/blnicholson/bamazon#readme",
+  "dependencies": {
+    "inquirer": "^6.2.0",
+    "mysql": "^2.16.0",
+    "terminal-table": "0.0.12"
+  }
+}
