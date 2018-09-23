@@ -30,7 +30,7 @@ The following steps are used to access the Manager Interface:
 From here you will be given multiple options: 
   * **View products for sale:** This option will allow the user to view all of the products that are for sale.
   * **View Low Inventory:** This option will the user to view products that have less then five items in stock.
-  * **Add Inventory:** This option will allow the user to add stock to products.
+  * **Add Inventory:** This option will allow the user to add stock to products. This is done by using the products name, not id. 
   * **Add New Product:** This option will allow the user to add a new product to the products database.
   * **Delete Product:** This option will allow the user to delete a product from the database.
   
